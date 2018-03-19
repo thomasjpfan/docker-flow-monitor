@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -19,9 +20,28 @@ import (
 
 type ServerTestSuite struct {
 	suite.Suite
+	reloadCalledNum int
+
+	reloadOrig func() error
+	runOrig    func() error
 }
 
 func (s *ServerTestSuite) SetupTest() {
+	s.reloadOrig = prometheus.Reload
+	s.runOrig = prometheus.Run
+	s.reloadCalledNum = 0
+	prometheus.Reload = func() error {
+		s.reloadCalledNum++
+		return nil
+	}
+	prometheus.Run = func() error {
+		return nil
+	}
+}
+
+func (s *ServerTestSuite) TearDownTest() {
+	prometheus.Reload = s.reloadOrig
+	prometheus.Run = s.runOrig
 }
 
 func TestServerUnitTestSuite(t *testing.T) {
@@ -183,11 +203,6 @@ func (s *ServerTestSuite) Test_ReconfigureHandler_SetsContentHeaderToJson() {
 
 func (s *ServerTestSuite) Test_ReconfigureHandler_SetsStatusCodeTo200() {
 	actual := 0
-	reloadOrig := prometheus.Reload
-	defer func() { prometheus.Reload = reloadOrig }()
-	prometheus.Reload = func() error {
-		return nil
-	}
 	rwMock := ResponseWriterMock{
 		WriteHeaderMock: func(status int) {
 			actual = status
@@ -200,6 +215,7 @@ func (s *ServerTestSuite) Test_ReconfigureHandler_SetsStatusCodeTo200() {
 	serve.ReconfigureHandler(rwMock, req)
 
 	s.Equal(200, actual)
+	s.Equal(1, s.reloadCalledNum)
 }
 
 func (s *ServerTestSuite) Test_ReconfigureHandler_AddsAlert() {
@@ -860,11 +876,6 @@ func (s *ServerTestSuite) Test_ReconfigureHandler_AddsAlertNameFormatted() {
 }
 
 func (s *ServerTestSuite) Test_ReconfigureHandler_ReturnsJson() {
-	reloadOrig := prometheus.Reload
-	defer func() { prometheus.Reload = reloadOrig }()
-	prometheus.Reload = func() error {
-		return nil
-	}
 	expected := response{
 		Status: http.StatusOK,
 		Alerts: []prometheus.Alert{{
@@ -900,6 +911,7 @@ func (s *ServerTestSuite) Test_ReconfigureHandler_ReturnsJson() {
 	serve.ReconfigureHandler(rwMock, req)
 
 	s.Equal(expected, actual)
+	s.Equal(1, s.reloadCalledNum)
 }
 
 func (s *ServerTestSuite) Test_ReconfigureHandler_CallsWriteConfig() {
@@ -1040,13 +1052,6 @@ scrape_configs:
 }
 
 func (s *ServerTestSuite) Test_ReconfigureHandler_SendsReloadRequestToPrometheus() {
-	reloadOrig := prometheus.Reload
-	defer func() { prometheus.Reload = reloadOrig }()
-	called := false
-	prometheus.Reload = func() error {
-		called = true
-		return nil
-	}
 	rwMock := ResponseWriterMock{}
 	addr := "/v1/docker-flow-monitor?serviceName=my-service&scrapePort=1234"
 	req, _ := http.NewRequest("GET", addr, nil)
@@ -1054,10 +1059,14 @@ func (s *ServerTestSuite) Test_ReconfigureHandler_SendsReloadRequestToPrometheus
 	serve := New()
 	serve.ReconfigureHandler(rwMock, req)
 
-	s.True(called)
+	s.Equal(1, s.reloadCalledNum)
 }
 
 func (s *ServerTestSuite) Test_ReconfigureHandler_ReturnsNokWhenPrometheusReloadFails() {
+	prometheus.Reload = func() error {
+		s.reloadCalledNum++
+		return errors.New("Prometheus error")
+	}
 	actualResponse := response{}
 	rwMock := ResponseWriterMock{
 		WriteMock: func(content []byte) (int, error) {
@@ -1075,6 +1084,10 @@ func (s *ServerTestSuite) Test_ReconfigureHandler_ReturnsNokWhenPrometheusReload
 }
 
 func (s *ServerTestSuite) Test_ReconfigureHandler_ReturnsStatusCodeFromPrometheus() {
+	prometheus.Reload = func() error {
+		s.reloadCalledNum++
+		return errors.New("Prometheus error")
+	}
 	actualResponse := response{}
 	actualStatus := 0
 	rwMock := ResponseWriterMock{
@@ -1191,11 +1204,6 @@ func (s *ServerTestSuite) Test_RemoveHandler_KeepsPersistantAlerts() {
 }
 
 func (s *ServerTestSuite) Test_RemoveHandler_ReturnsJson() {
-	reloadOrig := prometheus.Reload
-	defer func() { prometheus.Reload = reloadOrig }()
-	prometheus.Reload = func() error {
-		return nil
-	}
 	expected := response{
 		Status: http.StatusOK,
 		Alerts: []prometheus.Alert{
@@ -1223,6 +1231,7 @@ func (s *ServerTestSuite) Test_RemoveHandler_ReturnsJson() {
 	serve.RemoveHandler(rwMock, req)
 
 	s.Equal(expected, actual)
+	s.Equal(1, s.reloadCalledNum)
 }
 
 func (s *ServerTestSuite) Test_RemoveHandler_CallsWriteConfig() {
@@ -1426,13 +1435,6 @@ alerting:
 }
 
 func (s *ServerTestSuite) Test_RemoveHandler_SendsReloadRequestToPrometheus() {
-	called := false
-	reloadOrig := prometheus.Reload
-	defer func() { prometheus.Reload = reloadOrig }()
-	prometheus.Reload = func() error {
-		called = true
-		return nil
-	}
 	rwMock := ResponseWriterMock{}
 	addr := "/v1/docker-flow-monitor?serviceName=my-service"
 	req, _ := http.NewRequest("DELETE", addr, nil)
@@ -1443,10 +1445,11 @@ func (s *ServerTestSuite) Test_RemoveHandler_SendsReloadRequestToPrometheus() {
 	serve := New()
 	serve.RemoveHandler(rwMock, req)
 
-	s.True(called)
+	s.Equal(1, s.reloadCalledNum)
 }
 
 func (s *ServerTestSuite) Test_RemoveHandler_ReturnsNokWhenPrometheusReloadFails() {
+
 	actualResponse := response{}
 	rwMock := ResponseWriterMock{
 		WriteMock: func(content []byte) (int, error) {
@@ -1695,6 +1698,23 @@ func (s *ServerTestSuite) Test_InitialConfig_AddsAlerts() {
 	serve.InitialConfig()
 
 	s.Equal(expected, serve.alerts)
+}
+
+// ReconfigureNodeHandler
+
+func (s *ServerTestSuite) Test_ReconfigureNodeHandler_AddsNodes() {
+	// rwMock := ResponseWriterMock{}
+	// addr := "/v1/docker-flow-monitor/node/reconfigure?role=worker&id=nodeid"
+	// req, _ := http.NewRequest("GET", addr, nil)
+
+	// serve := New()
+	// serve.ReconfigureHandler(rwMock, req)
+}
+
+// RemoveNodeHandler
+
+func (s *ServerTestSuite) Test_RemoveNodeHandler_RemoveNodes() {
+
 }
 
 // Mock

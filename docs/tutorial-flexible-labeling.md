@@ -30,12 +30,30 @@ In this tutorial, we will set up two additional labels: `env` and `metricType`. 
   monitor:
     image: vfarcic/docker-flow-monitor:${TAG:-latest}
     environment:
-      ...
       - DF_SCRAPE_TARGET_LABELS=env,metricType
 ...
 ```
 
 This sets up flexible labeling for our exporters. If an exporter defines a deploy label `com.df.env` or `com.df.metricType`, that label will be used by `monitor`.
+
+We will also configure DFM to include node and engine labels in our targets by adding the environment variable: `DF_NODE_TARGET_LABELS=aws-region,role`. To get the nodes information, DFSL is configured to send node events to DFM by setting `DF_NOTIFY_CREATE_NODE_URL` and `DF_NOTIFY_REMOVE_NODE_URL`:
+
+```yaml
+...
+  monitor:
+    image: vfarcic/docker-flow-monitor:${TAG:-latest}
+    environment:
+      - DF_NODE_TARGET_LABELS=aws-region,role
+  ...
+  swarm-listener:
+    image: vfarcic/docker-flow-swarm-listener
+    environment:
+      ...
+      - DF_NOTIFY_CREATE_NODE_URL=http://monitor:8080/v1/docker-flow-monitor/node/reconfigure
+      - DF_NOTIFY_REMOVE_NODE_URL=http://monitor:8080/v1/docker-flow-monitor/node/remove
+      - DF_INCLUDE_NODE_IP_INFO=true
+...
+```
 
 Let's deploy the `monitor` stack:
 
@@ -46,6 +64,10 @@ docker stack deploy \
     -c stacks/docker-flow-monitor-flexible-labels.yml \
     monitor
 ```
+
+## Adding Labels to Nodes
+
+<!-- TODO -->
 
 ## Collecting Metrics and Defining Alerts
 
