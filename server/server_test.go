@@ -732,8 +732,8 @@ func (s *ServerTestSuite) Test_ReconfigureHandler_WithNodeInfo() {
 	}()
 	os.Setenv("DF_SCRAPE_TARGET_LABELS", "env,domain")
 	nodeInfo := prometheus.NodeIPSet{}
-	nodeInfo.Add("node-1", "1.0.1.1")
-	nodeInfo.Add("node-2", "1.0.1.2")
+	nodeInfo.Add("node-1", "1.0.1.1", "id1")
+	nodeInfo.Add("node-2", "1.0.1.2", "id2")
 	expected := prometheus.Scrape{
 		ServiceName: "my-service",
 		ScrapePort:  1234,
@@ -741,7 +741,7 @@ func (s *ServerTestSuite) Test_ReconfigureHandler_WithNodeInfo() {
 			"env":    "prod",
 			"domain": "frontend",
 		},
-		NodeInfo: &nodeInfo,
+		NodeInfo: nodeInfo,
 	}
 
 	nodeInfoBytes, err := json.Marshal(nodeInfo)
@@ -771,19 +771,19 @@ func (s *ServerTestSuite) Test_ReconfigureHandler_WithNodeInfo() {
 	s.Equal("", (*targetScrape.ScrapeLabels)["extra"])
 
 	s.Require().NotNil(targetScrape.NodeInfo)
-	s.True(expected.NodeInfo.Equal(*targetScrape.NodeInfo))
+	s.True(expected.NodeInfo.Equal(targetScrape.NodeInfo))
 
 }
 
 func (s *ServerTestSuite) Test_ReconfigureHandler_WithNodeInfo_NoTargetLabelsDefined() {
 	nodeInfo := prometheus.NodeIPSet{}
-	nodeInfo.Add("node-1", "1.0.1.1")
-	nodeInfo.Add("node-2", "1.0.1.2")
+	nodeInfo.Add("node-1", "1.0.1.1", "id1")
+	nodeInfo.Add("node-2", "1.0.1.2", "id2")
 	expected := prometheus.Scrape{
 		ServiceName:  "my-service",
 		ScrapePort:   1234,
 		ScrapeLabels: &map[string]string{},
-		NodeInfo:     &nodeInfo,
+		NodeInfo:     nodeInfo,
 	}
 
 	nodeInfoBytes, err := json.Marshal(nodeInfo)
@@ -811,7 +811,7 @@ func (s *ServerTestSuite) Test_ReconfigureHandler_WithNodeInfo_NoTargetLabelsDef
 	s.Equal(expected.ScrapeLabels, targetScrape.ScrapeLabels)
 
 	s.Require().NotNil(targetScrape.NodeInfo)
-	s.True(expected.NodeInfo.Equal(*targetScrape.NodeInfo))
+	s.True(expected.NodeInfo.Equal(targetScrape.NodeInfo))
 }
 
 func (s *ServerTestSuite) Test_ReconfigureHandler_DoesNotAddAlert_WhenAlertNameIsEmpty() {
@@ -963,8 +963,8 @@ scrape_configs:
     - /etc/prometheus/file_sd/my-service.json
 `
 	nodeInfo := prometheus.NodeIPSet{}
-	nodeInfo.Add("node-1", "1.0.1.1")
-	nodeInfo.Add("node-2", "1.0.1.2")
+	nodeInfo.Add("node-1", "1.0.1.1", "id1")
+	nodeInfo.Add("node-2", "1.0.1.2", "id2")
 	expected := prometheus.Scrape{
 		ServiceName: "my-service",
 		ScrapePort:  1234,
@@ -972,7 +972,7 @@ scrape_configs:
 			"env":    "prod",
 			"domain": "frontend",
 		},
-		NodeInfo: &nodeInfo,
+		NodeInfo: nodeInfo,
 	}
 
 	nodeInfoBytes, err := json.Marshal(nodeInfo)
@@ -1281,22 +1281,22 @@ func (s *ServerTestSuite) Test_RemoveHandler_WithNodeInfo_CallsWriteConfig() {
 	}()
 	prometheus.FS = afero.NewMemMapFs()
 	nodeInfo1 := prometheus.NodeIPSet{}
-	nodeInfo1.Add("node-1", "1.0.1.1")
-	nodeInfo1.Add("node-2", "1.0.1.2")
+	nodeInfo1.Add("node-1", "1.0.1.1", "id1")
+	nodeInfo1.Add("node-2", "1.0.1.2", "id2")
 	expected1 := prometheus.Scrape{
 		ServiceName:  "my-service1",
 		ScrapePort:   1234,
 		ScrapeLabels: &map[string]string{},
-		NodeInfo:     &nodeInfo1,
+		NodeInfo:     nodeInfo1,
 	}
 
 	nodeInfo2 := prometheus.NodeIPSet{}
-	nodeInfo2.Add("node-1", "1.0.2.1")
+	nodeInfo2.Add("node-1", "1.0.2.1", "id1")
 	expected2 := prometheus.Scrape{
 		ServiceName:  "my-service2",
 		ScrapePort:   2341,
 		ScrapeLabels: &map[string]string{},
-		NodeInfo:     &nodeInfo2,
+		NodeInfo:     nodeInfo2,
 	}
 
 	nodeInfoBytes1, err := json.Marshal(nodeInfo1)

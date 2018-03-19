@@ -33,6 +33,7 @@ var alertIfShortcutData map[string]AlertIfShortcut
 type serve struct {
 	scrapes    map[string]prometheus.Scrape
 	alerts     map[string]prometheus.Alert
+	nodes      map[string]map[string]string
 	configPath string
 }
 
@@ -58,6 +59,7 @@ var New = func() *serve {
 	return &serve{
 		alerts:     make(map[string]prometheus.Alert),
 		scrapes:    make(map[string]prometheus.Scrape),
+		nodes:      make(map[string]map[string]string),
 		configPath: promConfig,
 	}
 }
@@ -514,10 +516,10 @@ func (s *serve) getScrape(req *http.Request) prometheus.Scrape {
 	if nodeInfoStr := req.Form.Get("nodeInfo"); len(nodeInfoStr) > 0 {
 		nodeInfo := prometheus.NodeIPSet{}
 		json.Unmarshal([]byte(nodeInfoStr), &nodeInfo)
-		scrape.NodeInfo = &nodeInfo
+		scrape.NodeInfo = nodeInfo
 	}
 
-	if scrape.NodeInfo != nil && len(*scrape.NodeInfo) > 0 {
+	if scrape.NodeInfo != nil && len(scrape.NodeInfo) > 0 {
 		scrape.ScrapeLabels = &map[string]string{}
 		if targetLabels := os.Getenv("DF_SCRAPE_TARGET_LABELS"); len(targetLabels) > 0 {
 			labels := strings.Split(targetLabels, ",")

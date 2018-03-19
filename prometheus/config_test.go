@@ -561,16 +561,16 @@ func (s *ConfigTestSuite) Test_Writeconfig_WithNodeInfo_WritesConfig() {
 	FS = afero.NewMemMapFs()
 
 	nodeInfo1 := NodeIPSet{}
-	nodeInfo1.Add("node-1", "1.0.1.1")
-	nodeInfo1.Add("node-2", "1.0.1.2")
+	nodeInfo1.Add("node-1", "1.0.1.1", "id1")
+	nodeInfo1.Add("node-2", "1.0.1.2", "id2")
 	serviceLabels1 := map[string]string{
 		"env":    "prod",
 		"domain": "frontend",
 	}
 
 	nodeInfo2 := NodeIPSet{}
-	nodeInfo2.Add("node-1", "1.0.2.1")
-	nodeInfo2.Add("node-1", "1.0.2.2")
+	nodeInfo2.Add("node-1", "1.0.2.1", "id1")
+	nodeInfo2.Add("node-1", "1.0.2.2", "id1")
 	serviceLabels2 := map[string]string{
 		"env":    "dev",
 		"domain": "backend",
@@ -581,13 +581,13 @@ func (s *ConfigTestSuite) Test_Writeconfig_WithNodeInfo_WritesConfig() {
 			ServiceName:  "service-1",
 			ScrapePort:   1234,
 			ScrapeLabels: &serviceLabels1,
-			NodeInfo:     &nodeInfo1,
+			NodeInfo:     nodeInfo1,
 		},
 		"service-2": {
 			ServiceName:  "service-2",
 			ScrapePort:   5678,
 			ScrapeLabels: &serviceLabels2,
-			NodeInfo:     &nodeInfo2,
+			NodeInfo:     nodeInfo2,
 		},
 		"service-3": {
 			ServiceName: "service-3",

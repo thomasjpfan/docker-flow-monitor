@@ -103,7 +103,7 @@ func (c *Config) InsertScrapes(scrapes map[string]Scrape) {
 		if len(metricsPath) == 0 {
 			metricsPath = "/metrics"
 		}
-		if s.NodeInfo != nil && len(*s.NodeInfo) > 0 {
+		if s.NodeInfo != nil && len(s.NodeInfo) > 0 {
 			continue
 		}
 		if s.ScrapeType == "static_configs" {
@@ -169,7 +169,7 @@ func (c *Config) CreateFileStaticConfig(scrapes map[string]Scrape, fileSDDir str
 		if s.NodeInfo == nil {
 			continue
 		}
-		for n := range *s.NodeInfo {
+		for n := range s.NodeInfo {
 			tg := TargetGroup{}
 			tg.Targets = []string{fmt.Sprintf("%s:%d", n.Addr, s.ScrapePort)}
 			tg.Labels = map[string]string{}
