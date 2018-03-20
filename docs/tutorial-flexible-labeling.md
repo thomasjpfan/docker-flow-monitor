@@ -81,8 +81,6 @@ docker node update --label-add com.df.aws_region=us-east swarm-2
 docker node update --label-add com.df.aws_region=us-west swarm-3
 ```
 
-With these updates, DFSL will send notifications to DFM and update the prometheus configuration.
-
 ## Collecting Metrics and Defining Alerts
 
 We will deploy exporters stack defined in [stacks/exporters-tutorial-flexible-labels.yml](https://github.com/vfarcic/docker-flow-monitor/blob/master/stacks/exporters-tutorial-flexible-labels.yml),  two containing two services: `cadvisor` and `node-exporter`.
@@ -143,7 +141,7 @@ open "http://$(docker-machine ip swarm-1):9090/targets"
 
 You should see a targets page similar to the following:
 
-![Flexiable Labeling Targets Page](img/flexiable-labeling-targets-page.png)
+![Flexiable Labeling Targets Page](img/flexiable-labeling-targets-page.jpg)
 
 Each service is labeled with its associated `com.df.env` or `com.df.metricType` deploy label. In addition, the `node` label is the hostname the service is running on. The node labels `aws_region` and `role` are also included for each target.
 
