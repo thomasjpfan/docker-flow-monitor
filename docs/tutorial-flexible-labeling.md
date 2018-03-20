@@ -44,6 +44,7 @@ We will also configure DFM to include node and engine labels in our targets by a
     image: vfarcic/docker-flow-monitor:${TAG:-latest}
     environment:
       - DF_NODE_TARGET_LABELS=aws-region,role
+      - DF_GET_NODES_URL=http://swarm-listener:8080/v1/docker-flow-swarm-listener/get-nodes
   ...
   swarm-listener:
     image: vfarcic/docker-flow-swarm-listener

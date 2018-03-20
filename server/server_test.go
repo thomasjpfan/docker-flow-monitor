@@ -1450,6 +1450,9 @@ func (s *ServerTestSuite) Test_RemoveHandler_SendsReloadRequestToPrometheus() {
 
 func (s *ServerTestSuite) Test_RemoveHandler_ReturnsNokWhenPrometheusReloadFails() {
 
+	prometheus.Reload = func() error {
+		return errors.New("Prometheus failed loading")
+	}
 	actualResponse := response{}
 	rwMock := ResponseWriterMock{
 		WriteMock: func(content []byte) (int, error) {
@@ -1477,6 +1480,9 @@ func (s *ServerTestSuite) Test_RemoveHandler_ReturnsStatusCodeFromPrometheus() {
 		WriteHeaderMock: func(header int) {
 			actualStatus = header
 		},
+	}
+	prometheus.Reload = func() error {
+		return errors.New("Prometheus failed loading")
 	}
 	addr := "/v1/docker-flow-monitor?serviceName=my-service"
 	req, _ := http.NewRequest("DELETE", addr, nil)
@@ -1700,21 +1706,190 @@ func (s *ServerTestSuite) Test_InitialConfig_AddsAlerts() {
 	s.Equal(expected, serve.alerts)
 }
 
+func (s *ServerTestSuite) Test_InitialConfig_CallsWriteConfig() {
+	expected := map[string]map[string]string{
+		"node1id": map[string]string{
+			"awsregion": "us-east",
+			"role":      "worker",
+		},
+		"node2id": map[string]string{
+			"awsregion": "us-west",
+			"role":      "manager",
+		},
+		"node3id": map[string]string{
+			"role": "manager",
+		},
+	}
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		resp := []map[string]string{}
+		resp = append(resp, map[string]string{
+			"id":           "node1id",
+			"hostname":     "node1hostname",
+			"address":      "10.0.0.1",
+			"versionIndex": "24",
+			"state":        "up",
+			"role":         "worker",
+			"availability": "active",
+			"awsregion":    "us-east",
+		})
+		resp = append(resp, map[string]string{
+			"id":           "node2id",
+			"hostname":     "node2hostname",
+			"address":      "10.0.1.1",
+			"versionIndex": "24",
+			"state":        "up",
+			"role":         "manager",
+			"availability": "active",
+			"awsregion":    "us-west",
+		})
+
+		// Does not have awsregion
+		resp = append(resp, map[string]string{
+			"id":           "node3id",
+			"hostname":     "node3hostname",
+			"address":      "10.0.2.1",
+			"versionIndex": "24",
+			"state":        "up",
+			"role":         "manager",
+			"availability": "active",
+		})
+		js, _ := json.Marshal(resp)
+		w.Write(js)
+	}))
+
+	defer func() {
+		os.Unsetenv("DF_GET_NODES_URL")
+		os.Unsetenv("DF_NODE_TARGET_LABELS")
+	}()
+	os.Setenv("DF_GET_NODES_URL", testServer.URL)
+	os.Setenv("DF_NODE_TARGET_LABELS", "awsregion,role")
+
+	serve := New()
+	err := serve.InitialConfig()
+	s.Require().NoError(err)
+
+	s.Equal(expected, serve.nodeLabels)
+}
+
 // ReconfigureNodeHandler
 
-func (s *ServerTestSuite) Test_ReconfigureNodeHandler_AddsNodes() {
-	// rwMock := ResponseWriterMock{}
-	// addr := "/v1/docker-flow-monitor/node/reconfigure?role=worker&id=nodeid"
-	// req, _ := http.NewRequest("GET", addr, nil)
+func (s *ServerTestSuite) Test_ReconfigureNodeHandler_AddsNodes_WithoutNodeID() {
 
-	// serve := New()
-	// serve.ReconfigureHandler(rwMock, req)
+	actual := 0
+	rwMock := ResponseWriterMock{
+		WriteHeaderMock: func(status int) {
+			actual = status
+		},
+	}
+	addr := "/v1/docker-flow-monitor/node/reconfigure?role=worker&hostname=node1hostname&awsregion=us-east1&address=1.0.0.1"
+	req, _ := http.NewRequest("GET", addr, nil)
+	serve := New()
+	serve.ReconfigureNodeHandler(rwMock, req)
+
+	s.Equal(http.StatusBadRequest, actual)
+}
+
+func (s *ServerTestSuite) Test_ReconfigureNodeHandler_AddsNodes_CallsWriteConfig() {
+	fsOrig := prometheus.FS
+	defer func() {
+		os.Unsetenv("DF_NODE_TARGET_LABELS")
+		prometheus.FS = fsOrig
+	}()
+	os.Setenv("DF_NODE_TARGET_LABELS", "awsregion,role")
+	prometheus.FS = afero.NewMemMapFs()
+	nodeInfo := prometheus.NodeIPSet{}
+	nodeInfo.Add("node-1", "1.0.1.1", "node1id")
+	expectedScrape := prometheus.Scrape{
+		ServiceName:  "my-service",
+		ScrapePort:   1234,
+		ScrapeLabels: &map[string]string{},
+		NodeInfo:     nodeInfo,
+	}
+	expectedNodeLabel := map[string]map[string]string{
+		"node1id": map[string]string{
+			"awsregion": "us-east1",
+			"role":      "worker",
+		},
+	}
+
+	rwMock := ResponseWriterMock{}
+	addr := "/v1/docker-flow-monitor/node/reconfigure?role=worker&id=node1id&hostname=node1hostname&awsregion=us-east1&address=1.0.0.1"
+	req, _ := http.NewRequest("GET", addr, nil)
+
+	serve := New()
+
+	// Insert scrape for testing
+	serve.scrapes[expectedScrape.ServiceName] = expectedScrape
+	serve.ReconfigureNodeHandler(rwMock, req)
+
+	s.Equal(expectedNodeLabel, serve.nodeLabels)
+
+	// Check static file for node labels
+	myServiceExists, err := afero.Exists(prometheus.FS, "/etc/prometheus/file_sd/my-service.json")
+	s.Require().NoError(err)
+	s.True(myServiceExists)
+
+	fileSDConfigServiceByte, err := afero.ReadFile(prometheus.FS, "/etc/prometheus/file_sd/my-service.json")
+	s.Require().NoError(err)
+	fileSDconfig := prometheus.FileStaticConfig{}
+	err = json.Unmarshal(fileSDConfigServiceByte, &fileSDconfig)
+	s.Require().NoError(err)
+	s.Require().Len(fileSDconfig, 1)
+
+	var serviceNode1Tg *prometheus.TargetGroup
+
+	for _, tg := range fileSDconfig {
+		for _, target := range tg.Targets {
+			if target == "1.0.1.1:1234" {
+				serviceNode1Tg = tg
+				break
+			}
+		}
+	}
+	s.Require().NotNil(serviceNode1Tg)
+
+	s.Equal("us-east1", serviceNode1Tg.Labels["awsregion"])
+	s.Equal("worker", serviceNode1Tg.Labels["role"])
+
 }
 
 // RemoveNodeHandler
 
+func (s *ServerTestSuite) Test_ReconfigureNodeHandler_RemoveNodes_WithoutNodeID() {
+
+	actual := 0
+	rwMock := ResponseWriterMock{
+		WriteHeaderMock: func(status int) {
+			actual = status
+		},
+	}
+	addr := "/v1/docker-flow-monitor/node/reconfigure?role=worker&hostname=node1hostname&awsregion=us-east1&address=1.0.0.1"
+	req, _ := http.NewRequest("GET", addr, nil)
+	serve := New()
+	serve.RemoveNodeHandler(rwMock, req)
+
+	s.Equal(http.StatusBadRequest, actual)
+}
+
 func (s *ServerTestSuite) Test_RemoveNodeHandler_RemoveNodes() {
 
+	// Add node
+	rwMock := ResponseWriterMock{}
+	addr := "/v1/docker-flow-monitor/node/reconfigure?role=worker&id=node1id&hostname=node1hostname&awsregion=us-east1&address=1.0.0.1"
+	req, _ := http.NewRequest("GET", addr, nil)
+
+	serve := New()
+	serve.ReconfigureNodeHandler(rwMock, req)
+
+	// Remove node
+	addr = "/v1/docker-flow-monitor/node/remove?id=node1id&hostname=node1hostname&awsregion=us-east1"
+	req, _ = http.NewRequest("DELETE", addr, nil)
+
+	serve.RemoveNodeHandler(rwMock, req)
+
+	s.Len(serve.nodeLabels, 0)
 }
 
 // Mock

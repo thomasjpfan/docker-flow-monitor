@@ -17,7 +17,8 @@ import (
 )
 
 // WriteConfig creates Prometheus configuration at configPath and writes alerts into /etc/prometheus/alert.rules
-func WriteConfig(configPath string, scrapes map[string]Scrape, alerts map[string]Alert) {
+func WriteConfig(configPath string, scrapes map[string]Scrape,
+	alerts map[string]Alert, nodeLabels map[string]map[string]string) {
 	c := &Config{}
 	fileSDDir := "/etc/prometheus/file_sd"
 	alertRulesPath := "/etc/prometheus/alert.rules"
@@ -39,7 +40,7 @@ func WriteConfig(configPath string, scrapes map[string]Scrape, alerts map[string
 			logPrintf("Unable to insert alertmanager url %s into prometheus config", alertmanagerURL)
 		}
 	}
-	c.CreateFileStaticConfig(scrapes, fileSDDir)
+	c.CreateFileStaticConfig(scrapes, nodeLabels, fileSDDir)
 
 	for _, e := range os.Environ() {
 		envSplit := strings.SplitN(e, "=", 2)
@@ -161,7 +162,7 @@ func (c *Config) InsertScrapesFromDir(dir string) {
 }
 
 // CreateFileStaticConfig creates static config files
-func (c *Config) CreateFileStaticConfig(scrapes map[string]Scrape, fileSDDir string) {
+func (c *Config) CreateFileStaticConfig(scrapes map[string]Scrape, nodeLabels map[string]map[string]string, fileSDDir string) {
 
 	staticFiles := map[string]struct{}{}
 	for _, s := range scrapes {
@@ -180,6 +181,13 @@ func (c *Config) CreateFileStaticConfig(scrapes map[string]Scrape, fileSDDir str
 			}
 			tg.Labels["node"] = n.Name
 			tg.Labels["service"] = s.ServiceName
+
+			// If there is a node id add nodeLabels[n.ID] to service
+			if labels, ok := nodeLabels[n.ID]; len(n.ID) > 0 && ok {
+				for k, v := range labels {
+					tg.Labels[k] = v
+				}
+			}
 			fsc = append(fsc, &tg)
 		}
 

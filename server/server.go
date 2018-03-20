@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -33,7 +34,7 @@ var alertIfShortcutData map[string]AlertIfShortcut
 type serve struct {
 	scrapes    map[string]prometheus.Scrape
 	alerts     map[string]prometheus.Alert
-	nodes      map[string]map[string]string
+	nodeLabels map[string]map[string]string
 	configPath string
 }
 
@@ -42,6 +43,13 @@ type response struct {
 	Message string
 	Alerts  []prometheus.Alert
 	prometheus.Scrape
+}
+
+type nodeResponse struct {
+	Status    int
+	NodeID    string
+	Message   string
+	NodeLabel map[string]string
 }
 
 var httpListenAndServe = http.ListenAndServe
@@ -59,14 +67,14 @@ var New = func() *serve {
 	return &serve{
 		alerts:     make(map[string]prometheus.Alert),
 		scrapes:    make(map[string]prometheus.Scrape),
-		nodes:      make(map[string]map[string]string),
+		nodeLabels: make(map[string]map[string]string),
 		configPath: promConfig,
 	}
 }
 
 func (s *serve) Execute() error {
 	s.InitialConfig()
-	prometheus.WriteConfig(s.configPath, s.scrapes, s.alerts)
+	prometheus.WriteConfig(s.configPath, s.scrapes, s.alerts, s.nodeLabels)
 	go prometheus.Run()
 	address := "0.0.0.0:8080"
 	r := mux.NewRouter().StrictSlash(true)
@@ -101,7 +109,7 @@ func (s *serve) ReconfigureHandler(w http.ResponseWriter, req *http.Request) {
 	scrape := s.getScrape(req)
 	s.deleteAlerts(scrape.ServiceName, false)
 	alerts := s.getAlerts(req)
-	prometheus.WriteConfig(s.configPath, s.scrapes, s.alerts)
+	prometheus.WriteConfig(s.configPath, s.scrapes, s.alerts, s.nodeLabels)
 	err := prometheus.Reload()
 	statusCode := http.StatusOK
 	resp := s.getResponse(&alerts, &scrape, err, statusCode)
@@ -112,18 +120,75 @@ func (s *serve) ReconfigureHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *serve) RemoveHandler(w http.ResponseWriter, req *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
 	logPrintf("Processing " + req.URL.Path)
 	req.ParseForm()
 	serviceName := req.URL.Query().Get("serviceName")
 	scrape := s.scrapes[serviceName]
 	delete(s.scrapes, serviceName)
 	alerts := s.deleteAlerts(serviceName, true)
-	prometheus.WriteConfig(s.configPath, s.scrapes, s.alerts)
+	prometheus.WriteConfig(s.configPath, s.scrapes, s.alerts, s.nodeLabels)
 	err := prometheus.Reload()
 	statusCode := http.StatusOK
 	resp := s.getResponse(&alerts, &scrape, err, statusCode)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(resp.Status)
+	js, _ := json.Marshal(resp)
+	w.Write(js)
+}
+
+func (s *serve) ReconfigureNodeHandler(w http.ResponseWriter, req *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+	logPrintf("Processing " + req.URL.String())
+	req.ParseForm()
+	nodeID, nodeLabel, err := s.getNodeLabel(req)
+	if err != nil {
+		status := http.StatusBadRequest
+		resp := s.getNoIDNodeResponse(err, status)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(status)
+		js, _ := json.Marshal(resp)
+		w.Write(js)
+		return
+	}
+
+	prometheus.WriteConfig(s.configPath, s.scrapes, s.alerts, s.nodeLabels)
+	err = prometheus.Reload()
+	statusCode := http.StatusOK
+	resp := s.getNodeResponse(nodeID, nodeLabel, err, statusCode)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	js, _ := json.Marshal(resp)
+	w.Write(js)
+}
+
+func (s *serve) RemoveNodeHandler(w http.ResponseWriter, req *http.Request) {
+
+	mu.Lock()
+	defer mu.Unlock()
+	logPrintf("Processing " + req.URL.String())
+	req.ParseForm()
+	nodeID := req.URL.Query().Get("id")
+	if len(nodeID) == 0 {
+		status := http.StatusBadRequest
+		resp := s.getNoIDNodeResponse(errors.New("node id not in query"), status)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(status)
+		js, _ := json.Marshal(resp)
+		w.Write(js)
+		return
+	}
+	nodeLabel := s.nodeLabels[nodeID]
+	delete(s.nodeLabels, nodeID)
+
+	prometheus.WriteConfig(s.configPath, s.scrapes, s.alerts, s.nodeLabels)
+	err := prometheus.Reload()
+	statusCode := http.StatusOK
+	resp := s.getNodeResponse(nodeID, nodeLabel, err, statusCode)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
 	js, _ := json.Marshal(resp)
 	w.Write(js)
 }
@@ -135,6 +200,7 @@ func (s *serve) InitialConfig() error {
 		if !strings.HasPrefix(addr, "http") {
 			addr = fmt.Sprintf("http://%s:8080", addr)
 		}
+
 		addr = fmt.Sprintf("%s/v1/docker-flow-swarm-listener/get-services", addr)
 		timeout := time.Duration(listenerTimeout)
 		client := http.Client{Timeout: timeout}
@@ -173,7 +239,51 @@ func (s *serve) InitialConfig() error {
 				s.scrapes[row.ServiceName] = row
 			}
 		}
+
 	}
+
+	// Get Nodes
+	// Will return nil for errors since nodeLabels are not needed for DFM to function
+	if len(os.Getenv("DF_GET_NODES_URL")) > 0 {
+		logPrintf("Requesting nodes from Docker Flow Swarm Listener")
+		timeout := time.Duration(listenerTimeout)
+		client := http.Client{Timeout: timeout}
+
+		resp, err := client.Get(os.Getenv("DF_GET_NODES_URL"))
+		if err != nil {
+			logPrintf("Error with node request: %v", err)
+			return nil
+		}
+		body, err := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		if err != nil {
+			logPrintf("Error with respone body parsing: %v", err)
+			return nil
+		}
+		logPrintf("Processing: %s", string(body))
+		data := []map[string]string{}
+		json.Unmarshal(body, &data)
+
+		if len(os.Getenv("DF_NODE_TARGET_LABELS")) == 0 {
+			return nil
+		}
+		nodeTargetLabels := strings.Split(os.Getenv("DF_NODE_TARGET_LABELS"), ",")
+		for _, row := range data {
+			nodeID, ok := row["id"]
+			if !ok {
+				continue
+			}
+
+			labels := map[string]string{}
+			for _, targetLabel := range nodeTargetLabels {
+				if v, ok := row[targetLabel]; ok {
+					labels[targetLabel] = v
+				}
+			}
+			s.nodeLabels[nodeID] = labels
+		}
+	}
+
 	return nil
 }
 
@@ -506,6 +616,23 @@ func (s *serve) getNameFormatted(name string) string {
 	return strings.Replace(name, "-", "", -1)
 }
 
+func (s *serve) getNodeLabel(req *http.Request) (string, map[string]string, error) {
+	nodeLabel := map[string]string{}
+	nodeID := req.Form.Get("id")
+	if len(nodeID) == 0 {
+		return "", nodeLabel, errors.New("node id not included in requests")
+	}
+
+	nodeTargetLabels := strings.Split(os.Getenv("DF_NODE_TARGET_LABELS"), ",")
+	for _, targetLabel := range nodeTargetLabels {
+		if v := req.Form.Get(targetLabel); len(v) > 0 {
+			nodeLabel[targetLabel] = v
+		}
+	}
+	s.nodeLabels[nodeID] = nodeLabel
+	return nodeID, nodeLabel, nil
+}
+
 func (s *serve) getScrape(req *http.Request) prometheus.Scrape {
 	scrape := prometheus.Scrape{}
 	decoder.Decode(&scrape, req.Form)
@@ -555,6 +682,27 @@ func (s *serve) getResponse(alerts *[]prometheus.Alert, scrape *prometheus.Scrap
 	return resp
 }
 
+func (s *serve) getNodeResponse(ID string, nodeLabel map[string]string, err error, statusCode int) nodeResponse {
+	resp := nodeResponse{
+		Status:    statusCode,
+		NodeID:    ID,
+		NodeLabel: nodeLabel,
+	}
+	if err != nil {
+		resp.Message = err.Error()
+		resp.Status = http.StatusInternalServerError
+	}
+	return resp
+}
+
+func (s *serve) getNoIDNodeResponse(err error, status int) nodeResponse {
+	resp := nodeResponse{
+		Status:  status,
+		Message: err.Error(),
+	}
+	return resp
+}
+
 func (s *serve) getScrapeVariablesFromEnv() map[string]string {
 	scrapeVariablesPrefix := []string{
 		scrapePort,
@@ -576,7 +724,7 @@ func (s *serve) parseScrapeFromEnvMap(data map[string]string) ([]prometheus.Scra
 
 	// If an odd number was find in the environment variables it means it is missing variables
 	if len(data)%2 != 0 {
-		msg := fmt.Errorf("SCRAPE_PORT_* and SERVICE_NAME_* environment variable configuration are not valid.")
+		msg := fmt.Errorf("SCRAPE_PORT_* and SERVICE_NAME_* environment variable configuration are not valid")
 		return []prometheus.Scrape{}, msg
 	}
 
