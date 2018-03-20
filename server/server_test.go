@@ -1717,7 +1717,8 @@ func (s *ServerTestSuite) Test_InitialConfig_CallsWriteConfig() {
 			"role":      "manager",
 		},
 		"node3id": map[string]string{
-			"role": "manager",
+			"role":     "manager",
+			"back_end": "placeholder",
 		},
 	}
 
@@ -1754,6 +1755,7 @@ func (s *ServerTestSuite) Test_InitialConfig_CallsWriteConfig() {
 			"state":        "up",
 			"role":         "manager",
 			"availability": "active",
+			"back_end":     "placeholder",
 		})
 		js, _ := json.Marshal(resp)
 		w.Write(js)
@@ -1764,7 +1766,7 @@ func (s *ServerTestSuite) Test_InitialConfig_CallsWriteConfig() {
 		os.Unsetenv("DF_NODE_TARGET_LABELS")
 	}()
 	os.Setenv("DF_GET_NODES_URL", testServer.URL)
-	os.Setenv("DF_NODE_TARGET_LABELS", "awsregion,role")
+	os.Setenv("DF_NODE_TARGET_LABELS", "awsregion,role,back_end")
 
 	serve := New()
 	err := serve.InitialConfig()

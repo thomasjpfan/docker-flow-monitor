@@ -80,6 +80,8 @@ func (s *serve) Execute() error {
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/v1/docker-flow-monitor/reconfigure", s.ReconfigureHandler)
 	r.HandleFunc("/v1/docker-flow-monitor/remove", s.RemoveHandler)
+	r.HandleFunc("/v1/docker-flow-monitor/node/reconfigure", s.ReconfigureNodeHandler)
+	r.HandleFunc("/v1/docker-flow-monitor/node/remove", s.RemoveNodeHandler)
 	r.HandleFunc("/v1/docker-flow-monitor/ping", s.PingHandler)
 	// TODO: Do we need catch all?
 	r.HandleFunc("/v1/docker-flow-monitor/", s.EmptyHandler)
@@ -267,7 +269,7 @@ func (s *serve) InitialConfig() error {
 		if len(os.Getenv("DF_NODE_TARGET_LABELS")) == 0 {
 			return nil
 		}
-		nodeTargetLabels := strings.Split(os.Getenv("DF_NODE_TARGET_LABELS"), ",")
+		nodeTargetLabels := s.getTargetLabelsFromEnv()
 		for _, row := range data {
 			nodeID, ok := row["id"]
 			if !ok {
@@ -623,7 +625,7 @@ func (s *serve) getNodeLabel(req *http.Request) (string, map[string]string, erro
 		return "", nodeLabel, errors.New("node id not included in requests")
 	}
 
-	nodeTargetLabels := strings.Split(os.Getenv("DF_NODE_TARGET_LABELS"), ",")
+	nodeTargetLabels := s.getTargetLabelsFromEnv()
 	for _, targetLabel := range nodeTargetLabels {
 		if v := req.Form.Get(targetLabel); len(v) > 0 {
 			nodeLabel[targetLabel] = v
@@ -693,6 +695,16 @@ func (s *serve) getNodeResponse(ID string, nodeLabel map[string]string, err erro
 		resp.Status = http.StatusInternalServerError
 	}
 	return resp
+}
+
+func (s *serve) getTargetLabelsFromEnv() []string {
+	nodeTargetLabels := strings.Split(os.Getenv("DF_NODE_TARGET_LABELS"), ",")
+
+	o := []string{}
+	for _, targetLabel := range nodeTargetLabels {
+		o = append(o, strings.Replace(targetLabel, "-", "_", -1))
+	}
+	return o
 }
 
 func (s *serve) getNoIDNodeResponse(err error, status int) nodeResponse {

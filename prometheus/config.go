@@ -183,7 +183,7 @@ func (c *Config) CreateFileStaticConfig(scrapes map[string]Scrape, nodeLabels ma
 			tg.Labels["service"] = s.ServiceName
 
 			// If there is a node id add nodeLabels[n.ID] to service
-			if labels, ok := nodeLabels[n.ID]; len(n.ID) > 0 && ok {
+			if labels, ok := nodeLabels[n.ID]; len(n.ID) > 0 && ok && labels != nil {
 				for k, v := range labels {
 					tg.Labels[k] = v
 				}

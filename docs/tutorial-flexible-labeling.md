@@ -36,14 +36,19 @@ In this tutorial, we will set up two additional labels: `env` and `metricType`. 
 
 This sets up flexible labeling for our exporters. If an exporter defines a deploy label `com.df.env` or `com.df.metricType`, that label will be used by `monitor`.
 
-We will also configure DFM to include node and engine labels in our targets by adding the environment variable: `DF_NODE_TARGET_LABELS=aws-region,role`. To get the nodes information, DFSL is configured to send node events to DFM by setting `DF_NOTIFY_CREATE_NODE_URL` and `DF_NOTIFY_REMOVE_NODE_URL`:
+We will also configure DFM to include node and engine labels in our targets by adding the environment variable: `DF_NODE_TARGET_LABELS=aws_region,role`. `aws_region` will be a label we will manually add to our nodes, and `role` is a label that is already included by DFSL. For a full list of all default node labels, please consult the [Node Notification docs](http://swarmlistener.dockerflow.com/usage/#node-notification).
+
+!!! info
+    Only `[a-zA-Z0-9_]` are valid characters in prometheus labels.
+
+To get the nodes information, DFSL is configured to send node events to DFM by setting `DF_NOTIFY_CREATE_NODE_URL` and `DF_NOTIFY_REMOVE_NODE_URL`:
 
 ```yaml
 ...
   monitor:
     image: vfarcic/docker-flow-monitor:${TAG:-latest}
     environment:
-      - DF_NODE_TARGET_LABELS=aws-region,role
+      - DF_NODE_TARGET_LABELS=aws_region,role
       - DF_GET_NODES_URL=http://swarm-listener:8080/v1/docker-flow-swarm-listener/get-nodes
   ...
   swarm-listener:
@@ -68,7 +73,15 @@ docker stack deploy \
 
 ## Adding Labels to Nodes
 
-<!-- TODO -->
+We will now add the `aws_region` labels to our nodes. For DFM to recognize the labels, the labels must to be prefixed by `com.df.`:
+
+```bash
+docker node update --label-add com.df.aws_region=us-east swarm-1
+docker node update --label-add com.df.aws_region=us-east swarm-2
+docker node update --label-add com.df.aws_region=us-west swarm-3
+```
+
+With these updates, DFSL will send notifications to DFM and update the prometheus configuration.
 
 ## Collecting Metrics and Defining Alerts
 
@@ -132,7 +145,7 @@ You should see a targets page similar to the following:
 
 ![Flexiable Labeling Targets Page](img/flexiable-labeling-targets-page.png)
 
-Each service is labeled with its associated `com.df.env` or `com.df.metricType` deploy label. In addition, the `node` label is the hostname the service is running on.
+Each service is labeled with its associated `com.df.env` or `com.df.metricType` deploy label. In addition, the `node` label is the hostname the service is running on. The node labels `aws_region` and `role` are also included for each target.
 
 ## What Now?
 
