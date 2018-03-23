@@ -1,0 +1,746 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+      
+      
+        <meta name="author" content="Viktor Farcic">
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      
+        <link rel="shortcut icon" href="../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.17.1, mkdocs-material-2.0.1">
+    
+    
+      
+        <title>Running Docker Flow Monitor - Docker Flow Monitor</title>
+      
+    
+    
+      <script src="../assets/javascripts/modernizr-e826f8942a.js"></script>
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/application-462a8722ef.css">
+      
+    
+    
+      
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+    
+  </head>
+  
+    <body>
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href=".." title="Docker Flow Monitor" class="md-header-nav__button md-logo">
+          
+            <i class="md-icon">school</i>
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  Tutorial
+                </span>
+              
+            
+            Running Docker Flow Monitor
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          
+            <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+            
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="search"></label>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">&#xE5CD;</button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+          
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+
+  <a href="https://github.com/vfarcic/docker-flow-monitor/" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    <span class="md-nav__button md-logo">
+      
+        <i class="md-icon">school</i>
+      
+    </span>
+    Docker Flow Monitor
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/vfarcic/docker-flow-monitor/" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
+    
+    <label class="md-nav__link" for="nav-2">
+      Tutorial
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        Tutorial
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Running Docker Flow Monitor
+      </label>
+    
+    <a href="./" title="Running Docker Flow Monitor" class="md-nav__link md-nav__link--active">
+      Running Docker Flow Monitor
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-a-cluster" title="Setting Up A Cluster" class="md-nav__link">
+    Setting Up A Cluster
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-docker-flow-monitor" title="Deploying Docker Flow Monitor" class="md-nav__link">
+    Deploying Docker Flow Monitor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#collecting-metrics-and-defining-alerts" title="Collecting Metrics And Defining Alerts" class="md-nav__link">
+    Collecting Metrics And Defining Alerts
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-now" title="What Now?" class="md-nav__link">
+    What Now?
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../auto-scaling/" title="Auto-Scaling Services Using Instrumented Metrics" class="md-nav__link">
+      Auto-Scaling Services Using Instrumented Metrics
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../tutorial-flexible-labeling/" title="Flexible Labeling with Docker Flow Monitor" class="md-nav__link">
+      Flexible Labeling with Docker Flow Monitor
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../config/" title="Configuration" class="md-nav__link">
+      Configuration
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../usage/" title="Usage" class="md-nav__link">
+      Usage
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../migration/" title="Migration Guide" class="md-nav__link">
+      Migration Guide
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      About
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        About
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../release-notes/" title="Release Notes" class="md-nav__link">
+      Release Notes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../license/" title="License" class="md-nav__link">
+      License
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-a-cluster" title="Setting Up A Cluster" class="md-nav__link">
+    Setting Up A Cluster
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-docker-flow-monitor" title="Deploying Docker Flow Monitor" class="md-nav__link">
+    Deploying Docker Flow Monitor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#collecting-metrics-and-defining-alerts" title="Collecting Metrics And Defining Alerts" class="md-nav__link">
+    Collecting Metrics And Defining Alerts
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-now" title="What Now?" class="md-nav__link">
+    What Now?
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/vfarcic/docker-flow-monitor/edit/master/docs/tutorial.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                <h1 id="running-docker-flow-monitor">Running Docker Flow Monitor<a class="headerlink" href="#running-docker-flow-monitor" title="Permanent link">&para;</a></h1>
+<p>The examples that follow assume that you have Docker Machine version v0.8+ that includes Docker Engine v1.12+.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>If you are a Windows user, please run all the examples from <em>Git Bash</em> (installed through <em>Docker for Windows</em>). Also, make sure that your Git client is configured to check out the code <em>AS-IS</em>. Otherwise, Windows might change carriage returns to the Windows format.</p>
+</div>
+<h2 id="setting-up-a-cluster">Setting Up A Cluster<a class="headerlink" href="#setting-up-a-cluster" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Feel free to skip this section if you already have a Swarm cluster that can be used for this tutorial</p>
+</div>
+<p>We'll create a Swarm cluster consisting of three nodes created with Docker Machine.</p>
+<div class="codehilite"><pre><span></span>git clone https://github.com/vfarcic/docker-flow-monitor.git
+
+<span class="nb">cd</span> docker-flow-monitor
+
+./scripts/dm-swarm.sh
+
+<span class="nb">eval</span> <span class="k">$(</span>docker-machine env swarm-1<span class="k">)</span>
+</pre></div>
+
+<p>We cloned the <a href="https://github.com/vfarcic/docker-flow-monitor">vfarcic/docker-flow-monitor</a> repository. It contains all the scripts and stack files we'll use throughout this tutorial. Next, we executed the <code>dm-swarm.sh</code> script that created the cluster. Finally, we used the <code>eval</code> command to tell our local Docker client to use the remote Docker engine <code>swarm-1</code>.</p>
+<p>Now that the cluster is up-and-running, we can deploy the <em>Docker Flow Monitor</em> stack.</p>
+<h2 id="deploying-docker-flow-monitor">Deploying Docker Flow Monitor<a class="headerlink" href="#deploying-docker-flow-monitor" title="Permanent link">&para;</a></h2>
+<p>We'll deploy <a href="https://github.com/vfarcic/docker-flow-monitor/blob/master/stacks/docker-flow-monitor-tutorial.yml">stacks/docker-flow-monitor-tutorial.yml</a> stack that contains an example combination of parameters. The stack is as follows.</p>
+<p>The stack contains three services; <code>monitor</code>, <code>alert-manager</code>, and <code>swarm-listener</code>. We'll go through each separately.</p>
+<p>The definition of the <code>monitor</code> service is as follows.</p>
+<div class="codehilite"><pre><span></span>  monitor:
+    image: vfarcic/docker-flow-monitor
+    environment:
+      - LISTENER_ADDRESS=swarm-listener
+      - GLOBAL_SCRAPE_INTERVAL=10s
+      - ARG_ALERTMANAGER_URL=http://alert-manager:9093
+    networks:
+      - monitor
+    ports:
+      - 9090:9090
+</pre></div>
+
+<p>The environment variables show the first advantage of using <em>Docker Flow Monitor</em> instead directly Prometheus. All the configuration options and startup arguments can be specified as environment variables thus removing the need for configuration files and their persistence.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Please visit <a href="http://monitor.dockerflow.com/config/">Configuring Docker Flow Monitor</a> for more information about the available options.</p>
+</div>
+<p>The next in line is <code>alert-manager</code> service. The definition is as follows.</p>
+<div class="codehilite"><pre><span></span>  alert-manager:
+    image: vfarcic/alert-manager:slack
+    networks:
+      - monitor
+</pre></div>
+
+<p>We're using <code>vfarcic/alert-manager:slack</code> because it is already preconfigured to send notifications to <a href="http://slack.devops20toolkit.com/">DevOps20 Slack</a> (channel #df-monitor-tests). Feel free to replace <code>vfarcic/alert-manager:slack</code> with your own image based on <a href="https://hub.docker.com/r/prom/alertmanager/">prom/alertmanager/</a>.</p>
+<p>Finally, the last service in the stack is <code>swarm-listener</code>. The definition is as follows.</p>
+<div class="codehilite"><pre><span></span>  swarm-listener:
+    image: vfarcic/docker-flow-swarm-listener
+    networks:
+      - monitor
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DF_NOTIFY_CREATE_SERVICE_URL=http://monitor:8080/v1/docker-flow-monitor/reconfigure
+      - DF_NOTIFY_REMOVE_SERVICE_URL=http://monitor:8080/v1/docker-flow-monitor/remove
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+</pre></div>
+
+<p>The <code>swarm-listener</code> service will listen to Swarm events and notify <code>monitor</code> whenever a service is created, updated, or removed.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Please visit <a href="http://swarmlistener.dockerflow.com/">Docker Flow Swarm Listener documentation</a> for more information about the project.</p>
+</div>
+<p>Let's deploy the <code>monitor</code> stack</p>
+<div class="codehilite"><pre><span></span>docker network create -d overlay monitor
+
+docker stack deploy <span class="se">\</span>
+    -c stacks/docker-flow-monitor-tutorial.yml <span class="se">\</span>
+    monitor
+</pre></div>
+
+<p>Please wait until all the services are running. You can check their statuses by executing <code>docker stack ps monitor</code> command.</p>
+<p>Now we can open <em>Prometheus</em> from a browser.</p>
+<blockquote>
+<p>If you're a Windows user, Git Bash might not be able to use the <code>open</code> command. If that's the case, replace the <code>open</code> command with <code>echo</code>. As a result, you'll get the full address that should be opened directly in your browser of choice.</p>
+</blockquote>
+<div class="codehilite"><pre><span></span>open <span class="s2">&quot;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">:9090&quot;</span>
+</pre></div>
+
+<p>If you navigate to the <em>Status &gt; Command-Line Flags</em> screen, you'll notice that <em>alertmanager.url</em> entry is already configured through the environment variable <code>ARG_ALERTMANAGER_URL</code>. Similarly, the <em>Status &gt; Configuration</em> screen also has the configuration created through the environment variable <code>GLOBAL_SCRAPE_INTERVAL</code>.</p>
+<p>Now we can start collecting metrics.</p>
+<h2 id="collecting-metrics-and-defining-alerts">Collecting Metrics And Defining Alerts<a class="headerlink" href="#collecting-metrics-and-defining-alerts" title="Permanent link">&para;</a></h2>
+<p>Prometheus is a pull system. It scrapes exporters and stores metrics in its internal database.</p>
+<p>Let us deploy a few exporters.</p>
+<p>We'll deploy exporter stack defined in the <a href="https://github.com/vfarcic/docker-flow-monitor/blob/master/stacks/exporters-tutorial.yml">stacks/exporters-tutorial.yml</a>. It contains two services; <code>cadvisor</code> and <code>node-exporter</code>.</p>
+<p>The definition of the <code>cadvisor</code> service is as follows.</p>
+<div class="codehilite"><pre><span></span>  cadvisor:
+    image: google/cadvisor
+    ...
+    deploy:
+      mode: global
+      labels:
+        - com.df.notify=true
+        - com.df.scrapePort=8080
+</pre></div>
+
+<p>Service labels are what make this service special. <code>com.df.notify</code> tells <code>swarm-listener</code> that it should notify <code>monitor</code> when this service is created, updated, or removed. The <code>com.df.scrapePort</code> label specifies that Prometheus should scrape data from this service running on port <code>8080</code>.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Please visit <a href="http://monitor.dockerflow.com/usage/">Usage documentation</a> for more information about the available options.</p>
+</div>
+<p>The second service (<code>node-exporter</code>) defines more than scraping port. The definition is as follows.</p>
+<div class="codehilite"><pre><span></span>  node-exporter:
+    image: basi/node-exporter
+    ...
+    deploy:
+      mode: global
+      labels:
+        - com.df.notify=true
+        - com.df.scrapePort=9100
+        - com.df.alertName.1=memload
+        - com.df.alertIf.1=(sum by (instance) (node_memory_MemTotal) - sum by (instance) (node_memory_MemFree + node_memory_Buffers + node_memory_Cached)) / sum by (instance) (node_memory_MemTotal) &gt; 0.8
+        - com.df.alertName.2=diskload
+        - com.df.alertIf.2=@node_fs_limit:0.8
+    ...
+</pre></div>
+
+<p>This time, we added a few additional labels. <code>com.df.alertName.1</code> will tell Prometheus that it should create an alert called <code>memload</code>. The name of the alert is accompanied with the condition specified as <code>com.df.alertIf.1</code>. Multiple alerts can be defined by adding labels with incremental indexes. As the second alert, we used <code>com.df.alertName.2=diskload</code> to defined the name and <code>com.df.alertIf.2=@node_fs_limit:0.8</code> to define the condition. This time, we use one of the shortcuts instead writing the full syntax.</p>
+<p>Let's deploy the <code>exporter</code> stack.</p>
+<div class="codehilite"><pre><span></span>docker stack deploy <span class="se">\</span>
+    -c stacks/exporters-tutorial.yml <span class="se">\</span>
+    exporter
+</pre></div>
+
+<p>Please wait until the service in the stack are up-and-running. You can check their status by executing <code>docker stack ps exporter</code> command.</p>
+<p>If you go back to Prometheus and navigate to the <em>Status &gt; Configuration</em> screen, you'll notice that exporters are automatically added as well as the path to the rules file that contains alerts. To be on the safe side, please open the <em>Status &gt; Targets</em> screen. It should contain three endpoints for each of the two targets we created.</p>
+<p>The two alerts were created as well. You can see their status by navigating to the <em>Alerts</em> screen.</p>
+<p>We'll deploy one more stack. This time, we'll create a few demo services as a way to demonstrate that alerts creation is not limited to exporters but that it can be applied to any Swarm service.</p>
+<p>The stack we'll deploy is as follows.</p>
+<div class="codehilite"><pre><span></span>version: &#39;3&#39;
+
+services:
+
+  main:
+    image: vfarcic/go-demo
+    environment:
+      - DB=db
+    ports:
+      - 8080:8080
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      labels:
+        - com.df.notify=true
+        - com.df.distribute=true
+        - com.df.alertName=memlimit
+        - com.df.alertIf=@service_mem_limit:0.8
+        - com.df.alertFor=30s
+      resources:
+        reservations:
+          memory: 5M
+        limits:
+          memory: 10M
+
+  db:
+    image: mongo
+</pre></div>
+
+<p>In this context, the details of the services are not important. What matters is that we defined that the service should create an alert named <code>memlimit</code> and that the condition is defined as the <code>@service_mem_limit:0.8</code> shortcut. It will create an alert that will be fired if memory usage is over 80% of the memory limit which is set to 10MB. Additionally, we also set the <code>alertFor</code> label tells Prometheus to fire the alert only if the condition persists for more than 30 seconds.</p>
+<p>Let's deploy the <code>go-demo</code> stack.</p>
+<div class="codehilite"><pre><span></span>docker stack deploy <span class="se">\</span>
+    -c stacks/go-demo-tutorial.yml <span class="se">\</span>
+    go-demo
+</pre></div>
+
+<p>If you go back to the alerts screen, you'll see that a new entry is added.</p>
+<p>It is up to you to configure <a href="https://hub.docker.com/r/prom/alertmanager/">Alert Manager</a> so that those alerts are propagated accordingly (e.g. to Slack, Jenkins, email, and so on).</p>
+<h2 id="what-now">What Now?<a class="headerlink" href="#what-now" title="Permanent link">&para;</a></h2>
+<p>That was a very brief introduction to <em>Docker Flow Monitor</em>. Please consult the documentation for any additional information you might need. Feel free to open <a href="https://github.com/vfarcic/docker-flow-monitor/issues">an issue</a> if you require additional info, if you find a bug, or if you have a feature request.</p>
+<p>Before you go, please remove the cluster we created and free those resources for something else.</p>
+<div class="codehilite"><pre><span></span>docker-machine rm -f swarm-1 swarm-2 swarm-3
+</pre></div>
+                
+                  
+                
+              
+              
+                
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href=".." title="Home" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Home
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../auto-scaling/" title="Auto-Scaling Services Using Instrumented Metrics" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Auto-Scaling Services Using Instrumented Metrics
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright © 2017 Viktor Farcic
+          </div>
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/application-84693e5e49.js"></script>
+      
+      <script>app.initialize({version:"0.17.1",url:{base:".."}})</script>
+      
+    
+    
+      
+    
+  </body>
+</html>

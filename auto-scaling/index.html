@@ -1,0 +1,971 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+      
+      
+        <meta name="author" content="Viktor Farcic">
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      
+        <link rel="shortcut icon" href="../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.17.1, mkdocs-material-2.0.1">
+    
+    
+      
+        <title>Auto-Scaling Services Using Instrumented Metrics - Docker Flow Monitor</title>
+      
+    
+    
+      <script src="../assets/javascripts/modernizr-e826f8942a.js"></script>
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/application-462a8722ef.css">
+      
+    
+    
+      
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+    
+  </head>
+  
+    <body>
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href=".." title="Docker Flow Monitor" class="md-header-nav__button md-logo">
+          
+            <i class="md-icon">school</i>
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  Tutorial
+                </span>
+              
+            
+            Auto-Scaling Services Using Instrumented Metrics
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          
+            <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+            
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="search"></label>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">&#xE5CD;</button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+          
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+
+  <a href="https://github.com/vfarcic/docker-flow-monitor/" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    <span class="md-nav__button md-logo">
+      
+        <i class="md-icon">school</i>
+      
+    </span>
+    Docker Flow Monitor
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/vfarcic/docker-flow-monitor/" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
+    
+    <label class="md-nav__link" for="nav-2">
+      Tutorial
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        Tutorial
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../tutorial/" title="Running Docker Flow Monitor" class="md-nav__link">
+      Running Docker Flow Monitor
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Auto-Scaling Services Using Instrumented Metrics
+      </label>
+    
+    <a href="./" title="Auto-Scaling Services Using Instrumented Metrics" class="md-nav__link md-nav__link--active">
+      Auto-Scaling Services Using Instrumented Metrics
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-a-cluster" title="Setting Up A Cluster" class="md-nav__link">
+    Setting Up A Cluster
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-docker-flow-proxy-dfp-and-docker-flow-swarm-listener-dfsl" title="Deploying Docker Flow Proxy (DFP) and Docker Flow Swarm Listener (DFSL)" class="md-nav__link">
+    Deploying Docker Flow Proxy (DFP) and Docker Flow Swarm Listener (DFSL)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-docker-flow-monitor-and-alertmanager" title="Deploying Docker Flow Monitor and Alertmanager" class="md-nav__link">
+    Deploying Docker Flow Monitor and Alertmanager
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-jenkins" title="Deploying Jenkins" class="md-nav__link">
+    Deploying Jenkins
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-instrumented-service" title="Deploying Instrumented Service" class="md-nav__link">
+    Deploying Instrumented Service
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automatically-scaling-services" title="Automatically Scaling Services" class="md-nav__link">
+    Automatically Scaling Services
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-now" title="What Now?" class="md-nav__link">
+    What Now?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-devops-22-toolkit-self-healing-docker-clusters" title="The DevOps 2.2 Toolkit: Self-Healing Docker Clusters" class="md-nav__link">
+    The DevOps 2.2 Toolkit: Self-Healing Docker Clusters
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../tutorial-flexible-labeling/" title="Flexible Labeling with Docker Flow Monitor" class="md-nav__link">
+      Flexible Labeling with Docker Flow Monitor
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../config/" title="Configuration" class="md-nav__link">
+      Configuration
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../usage/" title="Usage" class="md-nav__link">
+      Usage
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../migration/" title="Migration Guide" class="md-nav__link">
+      Migration Guide
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      About
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        About
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../release-notes/" title="Release Notes" class="md-nav__link">
+      Release Notes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../license/" title="License" class="md-nav__link">
+      License
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-a-cluster" title="Setting Up A Cluster" class="md-nav__link">
+    Setting Up A Cluster
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-docker-flow-proxy-dfp-and-docker-flow-swarm-listener-dfsl" title="Deploying Docker Flow Proxy (DFP) and Docker Flow Swarm Listener (DFSL)" class="md-nav__link">
+    Deploying Docker Flow Proxy (DFP) and Docker Flow Swarm Listener (DFSL)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-docker-flow-monitor-and-alertmanager" title="Deploying Docker Flow Monitor and Alertmanager" class="md-nav__link">
+    Deploying Docker Flow Monitor and Alertmanager
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-jenkins" title="Deploying Jenkins" class="md-nav__link">
+    Deploying Jenkins
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-instrumented-service" title="Deploying Instrumented Service" class="md-nav__link">
+    Deploying Instrumented Service
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automatically-scaling-services" title="Automatically Scaling Services" class="md-nav__link">
+    Automatically Scaling Services
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-now" title="What Now?" class="md-nav__link">
+    What Now?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-devops-22-toolkit-self-healing-docker-clusters" title="The DevOps 2.2 Toolkit: Self-Healing Docker Clusters" class="md-nav__link">
+    The DevOps 2.2 Toolkit: Self-Healing Docker Clusters
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/vfarcic/docker-flow-monitor/edit/master/docs/auto-scaling.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                <h1 id="auto-scaling-docker-swarm-services-using-instrumented-metrics">Auto-Scaling Docker Swarm Services Using Instrumented Metrics<a class="headerlink" href="#auto-scaling-docker-swarm-services-using-instrumented-metrics" title="Permanent link">&para;</a></h1>
+<p>Docker Swarm provides a solid mechanism that, among other things, makes sure that the specified number of replicas of a service is (almost) always running inside a cluster. It is performing self-healing out-of-the-box. However, that is often not enough. We need the system to adapt to changed conditions. We'll call this process self-adaptation.</p>
+<p>In this tutorial, we'll go through one possible setup that allows self-adaptation of services based on their response time. That does not mean that response time metrics are the only ones we should use. Quite the contrary. However, we need to limit the scope of this tutorial and response times are probably one of the most commonly used metrics when applying self-adaptation.</p>
+<p>The tools we'll use to setup a self-adaptive system are as follows.</p>
+<ul>
+<li><a href="https://prometheus.io/">Prometheus</a>: Scrapes metrics and fires alerts when certain thresholds are reached.</li>
+<li><a href="http://monitor.dockerflow.com/">Docker Flow Monitor</a>: It extends Prometheus with capability to auto-configure itself.</li>
+<li><a href="https://prometheus.io/docs/alerting/alertmanager/">Alertmanager</a>: Receives alerts from Prometheus and forwards them to some other service depending on matching routes.</li>
+<li><a href="https://jenkins.io/">Jenkins</a>: Executes scheduled or triggered jobs. We'll use it as the engine that will scale a service.</li>
+<li><a href="http://proxy.dockerflow.com/">Docker Flow Proxy</a>: It extends HAProxy with capability to auto-configure itself.</li>
+<li><a href="http://swarmlistener.dockerflow.com/">Docker Flow Swarm Listener</a>: Listens to Swarm events and sends notifications when a service is created or updated. We'll use it to send notifications to <em>Docker Flow Monitor</em> and <em>Docker Flow Proxy</em>.</li>
+<li><a href="https://github.com/vfarcic/go-demo">go-demo</a>: A demo service.</li>
+</ul>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/eThDk8Jz598" frameborder="0" allowfullscreen></iframe>
+
+<p>The examples that follow assume that you have Docker Machine version v0.8+ that includes Docker Engine v1.12+.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>If you are a Windows user, please run all the examples from <em>Git Bash</em> (installed through <em>Docker for Windows</em>). Also, make sure that your Git client is configured to check out the code <em>AS-IS</em>. Otherwise, Windows might change carriage returns to the Windows format.</p>
+</div>
+<h2 id="setting-up-a-cluster">Setting Up A Cluster<a class="headerlink" href="#setting-up-a-cluster" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Feel free to skip this section if you already have a Swarm cluster that can be used for this tutorial</p>
+</div>
+<p>We'll create a Swarm cluster consisting of three nodes created with Docker Machine.</p>
+<div class="codehilite"><pre><span></span>git clone https://github.com/vfarcic/docker-flow-monitor.git
+
+<span class="nb">cd</span> docker-flow-monitor
+
+./scripts/dm-swarm.sh
+
+<span class="nb">eval</span> <span class="k">$(</span>docker-machine env swarm-1<span class="k">)</span>
+</pre></div>
+
+<p>We cloned the <a href="https://github.com/vfarcic/docker-flow-monitor">vfarcic/docker-flow-monitor</a> repository. It contains all the scripts and stack files we'll use throughout this tutorial. Next, we executed the <code>dm-swarm.sh</code> script that created the cluster. Finally, we used the <code>eval</code> command to tell our local Docker client to use the remote Docker engine <code>swarm-1</code>.</p>
+<h2 id="deploying-docker-flow-proxy-dfp-and-docker-flow-swarm-listener-dfsl">Deploying Docker Flow Proxy (DFP) and Docker Flow Swarm Listener (DFSL)<a class="headerlink" href="#deploying-docker-flow-proxy-dfp-and-docker-flow-swarm-listener-dfsl" title="Permanent link">&para;</a></h2>
+<p>Proxy is not strictly necessary for this tutorial. We're using it only as a convenient way to get a single access point to the cluster instead opening a different port for each publicly accessible service.</p>
+<div class="codehilite"><pre><span></span>docker network create -d overlay proxy
+
+docker stack deploy <span class="se">\</span>
+    -c stacks/docker-flow-proxy-mem.yml <span class="se">\</span>
+    proxy
+</pre></div>
+
+<p>The stack deployed two services; <code>proxy</code> and <code>swarm-listener</code>. From now on, the proxy will be notified whenever a service is deployed or updated as long as it has the <code>com.df.notify</code> label set to <code>true</code>. Please consult <a href="https://github.com/vfarcic/docker-flow-monitor/blob/master/stacks/docker-flow-proxy-mem.yml">docker-flow-proxy-mem.yml</a> for the full definition of the stack. For information about those two projects, please visit <a href="http://proxy.dockerflow.com">proxy.dockerflow.com</a> and <a href="http://swarmlistener.dockerflow.com/">swarmlistener.dockerflow.com</a>.</p>
+<h2 id="deploying-docker-flow-monitor-and-alertmanager">Deploying Docker Flow Monitor and Alertmanager<a class="headerlink" href="#deploying-docker-flow-monitor-and-alertmanager" title="Permanent link">&para;</a></h2>
+<p>The next stack defines <em>Docker Flow Monitor</em> and <em>Alertmanager</em>. Before we deploy the stack, we should create the <code>monitor</code> network that will allow Prometheus to scrape metrircs from exporters and instrumented services.</p>
+<div class="codehilite"><pre><span></span>docker network create -d overlay monitor
+</pre></div>
+
+<p>Next we'll create <em>Alertmanager</em> configuration as a Docker secret. That way we won't need to create a new image with configuration or mount a volume.</p>
+<div class="codehilite"><pre><span></span><span class="nb">echo</span> <span class="s2">&quot;route:</span>
+<span class="s2">  group_by: [service,scale]</span>
+<span class="s2">  repeat_interval: 5m</span>
+<span class="s2">  group_interval: 5m</span>
+<span class="s2">  receiver: &#39;slack&#39;</span>
+<span class="s2">  routes:</span>
+<span class="s2">  - match:</span>
+<span class="s2">      service: &#39;go-demo_main&#39;</span>
+<span class="s2">      scale: &#39;up&#39;</span>
+<span class="s2">    receiver: &#39;jenkins-go-demo_main-up&#39;</span>
+<span class="s2">  - match:</span>
+<span class="s2">      service: &#39;go-demo_main&#39;</span>
+<span class="s2">      scale: &#39;down&#39;</span>
+<span class="s2">    receiver: &#39;jenkins-go-demo_main-down&#39;</span>
+
+<span class="s2">receivers:</span>
+<span class="s2">  - name: &#39;slack&#39;</span>
+<span class="s2">    slack_configs:</span>
+<span class="s2">      - send_resolved: true</span>
+<span class="s2">        title: &#39;[{{ .Status | toUpper }}] {{ .GroupLabels.service }} service is in danger!&#39;</span>
+<span class="s2">        title_link: &#39;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/monitor/alerts&#39;</span>
+<span class="s2">        text: &#39;{{ .CommonAnnotations.summary}}&#39;</span>
+<span class="s2">        api_url: &#39;https://hooks.slack.com/services/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&#39;</span>
+<span class="s2">  - name: &#39;jenkins-go-demo_main-up&#39;</span>
+<span class="s2">    webhook_configs:</span>
+<span class="s2">      - send_resolved: false</span>
+<span class="s2">        url: &#39;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/jenkins/job/service-scale/buildWithParameters?token=DevOps22&amp;service=go-demo_main&amp;scale=1&#39;</span>
+<span class="s2">  - name: &#39;jenkins-go-demo_main-down&#39;</span>
+<span class="s2">    webhook_configs:</span>
+<span class="s2">      - send_resolved: false</span>
+<span class="s2">        url: &#39;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/jenkins/job/service-scale/buildWithParameters?token=DevOps22&amp;service=go-demo_main&amp;scale=-1&#39;</span>
+<span class="s2">&quot;</span> <span class="p">|</span> docker secret create alert_manager_config -
+</pre></div>
+
+<p>The configuration groups routes by <code>service</code> and <code>scale</code> labels. The <code>repeat_interval</code> and <code>group_interval</code> are both set to five minutes. In a production cluster, <code>repeat_interval</code> should be set to a much larger value (e.g. <code>1h</code>). We set it up to five minutes so that we can demonstrate different features of the system faster. Otherwise, we'd need to wait for over an hour to see different alerts in action.</p>
+<p>The default receiver is <code>slack</code>. As the result, any alert that does not match one of the <code>routes</code> will be sent to Slack.</p>
+<p>The <code>routes</code> section defines two <code>match</code> entries. If the alert label <code>service</code> is set to <code>go-demo_main</code> and the label <code>scale</code> is <code>up</code>, the receiver will be <code>jenkins-go-demo_main-up</code>. Similarly, when the same service is associated with an alert but the <code>scale</code> label is set to <code>down</code>, the receiver will be <code>jenkins-go-demo_main-down</code>.</p>
+<p>There are three receivers. The <code>slack</code> receiver will send notifications to Slack. As stated before, it's used only for alerts that do not <code>match</code> one of the <code>routes</code>. Both <code>jenkins-go-demo_main-up</code> and <code>jenkins-go-demo_main-down</code> are sending a <code>POST</code> request to Jenkins job <code>service-scale</code>. The only difference between the two is in the <code>scale</code> parameter. One will set it to <code>1</code> indicating that the <code>go-demo_main</code> service should be up-scaled by one and the other will set it to <code>-1</code> indicating that the service should de de-scaled by 1.</p>
+<p>Please consult <a href="https://prometheus.io/docs/alerting/configuration/">configuration</a> section of Alertmanager documentation for more information about the options we used.</p>
+<p>Now we can deploy the <code>monitor</code> stack.</p>
+<div class="codehilite"><pre><span></span><span class="nv">DOMAIN</span><span class="o">=</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span> <span class="se">\</span>
+    docker stack deploy <span class="se">\</span>
+    -c stacks/docker-flow-monitor-slack.yml <span class="se">\</span>
+    monitor
+</pre></div>
+
+<p>The full definition of the stack that we just deployed can be found in <a href="https://github.com/vfarcic/docker-flow-monitor/blob/master/stacks/docker-flow-monitor-slack.yml">docker-flow-monitor-slack.yml</a>. We'll comment only on a few interesting parts. The definition, limited to relevant parts, is as follows.</p>
+<div class="codehilite"><pre><span></span>...
+  monitor:
+    image: vfarcic/docker-flow-monitor
+    environment:
+      - LISTENER_ADDRESS=swarm-listener
+      - GLOBAL_SCRAPE_INTERVAL=${SCRAPE_INTERVAL:-10s}
+      - ARG_WEB_ROUTE-PREFIX=/monitor
+      - ARG_WEB_EXTERNAL-URL=http://${DOMAIN:-localhost}/monitor
+      - ARG_ALERTMANAGER_URL=http://alert-manager:9093
+    ...
+    deploy:
+      labels:
+        ...
+        - com.df.servicePath=/monitor
+        - com.df.serviceDomain=${DOMAIN:-localhost}
+        - com.df.port=9090
+      ...
+
+  alert-manager:
+    image: prom/alertmanager
+    networks:
+      - monitor
+    secrets:
+      - alert_manager_config
+    command: --config.file=/run/secrets/alert_manager_config --storage.path=/alertmanager
+
+  swarm-listener:
+    image: vfarcic/docker-flow-swarm-listener
+    ...
+    environment:
+      - DF_NOTIFY_CREATE_SERVICE_URL=http://monitor:8080/v1/docker-flow-monitor/reconfigure
+      - DF_NOTIFY_REMOVE_SERVICE_URL=http://monitor:8080/v1/docker-flow-monitor/remove
+    ...
+</pre></div>
+
+<p>Inside the <code>monitor</code> service, we used environment variables to provide initial Prometheus configuration. The labels will be used by <code>swarm</code> listener to notify the proxy about monitor's path, domain, and port.</p>
+<p>The <code>alert-manager</code> service uses <code>alert_manager_config</code> secret as Alertmanager configuration file.</p>
+<p>The <code>swarm-listener</code> service has <code>monitor</code> running on port <code>8080</code> as URL where notifications should be sent.</p>
+<p>Please consult <a href="http://monitor.dockerflow.com/">Docker Flow Monitor documentation</a> for more information. If you haven't used it before, the <a href="http://monitor.dockerflow.com/tutorial/">Running Docker Flow Monitor tutorial</a> might be a good starting point.</p>
+<p>Let us confirm that the <code>monitor</code> stack is up and running.</p>
+<div class="codehilite"><pre><span></span>docker stack ps monitor
+</pre></div>
+
+<p>Please wait a few moments if some of the replicas do not yet have the status set to <code>running</code>.</p>
+<p>Now that the <code>monitor</code> stack is up and running, we should proceed with deployment of Jenkins and its agent.</p>
+<h2 id="deploying-jenkins">Deploying Jenkins<a class="headerlink" href="#deploying-jenkins" title="Permanent link">&para;</a></h2>
+<p>The Jenkins image we'll run already has all the plugins baked in. The administrative user and password will be retrieved from Docker secrets. A job that will scale and de-scale services is also defined inside the image. With those in place, we'll be able to skip manual setup.</p>
+<div class="codehilite"><pre><span></span><span class="nb">echo</span> <span class="s2">&quot;admin&quot;</span> <span class="p">|</span> <span class="se">\</span>
+    docker secret create jenkins-user -
+
+<span class="nb">echo</span> <span class="s2">&quot;admin&quot;</span> <span class="p">|</span> <span class="se">\</span>
+    docker secret create jenkins-pass -
+
+<span class="nb">export</span> <span class="nv">SLACK_IP</span><span class="o">=</span><span class="k">$(</span>ping <span class="se">\</span>
+    -c <span class="m">1</span> devops20.slack.com <span class="se">\</span>
+    <span class="p">|</span> awk -F<span class="s1">&#39;[()]&#39;</span> <span class="s1">&#39;/PING/{print $2}&#39;</span><span class="k">)</span>
+
+docker stack deploy <span class="se">\</span>
+    -c stacks/jenkins-scale.yml jenkins
+</pre></div>
+
+<p>We created two secrets that define administrative username and password. The environment variable <code>SLACK_IP</code> might not be necessary. It's there just in case Docker Machine cannot resolve Slack. Finally, the last command deployed the <code>jenkins</code> stack.</p>
+<p>I won't go into much detailed about the <code>jenkins</code> stack. If you're interested in the subject, you might want to read <a href="https://technologyconversations.com/2017/06/16/automating-jenkins-docker-setup/">Automating Jenkins Docker Setup</a> article or watch the <a href="https://technologyconversations.com/2017/08/03/jenkins-master-as-a-docker-service-running-inside-a-docker-for-aws-cluster/">Jenkins Master As a Docker Service Running Inside a Docker for AWS Cluster</a> video. The only thing that truly matters is the <code>service-scale</code> job that we'll explore soon.</p>
+<p>Before we proceed, please confirm that all the replicas of the stack are running.</p>
+<div class="codehilite"><pre><span></span>docker stack ps jenkins
+</pre></div>
+
+<p>Once all the replicas of the stack are in the <code>running</code> state, we can open the <code>service-scale</code> job and take a quick look at its definition.</p>
+<blockquote>
+<p>If you're a Windows user, Git Bash might not be able to use the <code>open</code> command. If that's the case, replace the <code>open</code> command with <code>echo</code>. As a result, you'll get the full address that should be opened directly in your browser of choice.</p>
+</blockquote>
+<div class="codehilite"><pre><span></span>open <span class="s2">&quot;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/jenkins/job/service-scale/configure&quot;</span>
+</pre></div>
+
+<p>You will be presented with a login screen. Please use <code>admin</code> as both username and password to authenticate.</p>
+<p>Please click the <em>Pipeline</em> tab once you get inside the <code>service-scale</code> configuration screen.</p>
+<p>The first half of the job is relatively straightforward. The job should be executed inside a <code>prod</code> agent (short for production). It defines two parameters. One holds the name of the service that should be scaled. The other expected a number of replicas that should be added or removed. If the value is positive, the service will be up-scaled. A negative value means that it should de-scale.</p>
+<p>The job defines only one stage called <code>Scale</code>. Inside it is a single step defined inside a <code>script</code>. It executes <code>docker service inspect</code> command and retrieves the current number of replicas. It also retrieves <code>scaleMin</code> and <code>scaleMax</code> labels to discover the limits that should be applied to scaling. Without them, we would run a risk of scaling to infinity or de-scaling to zero replicas.</p>
+<p>The desired number of replicas (<code>newReplicas</code>) is obtained by subtracting the current number of replicas with the <code>scale</code> parameter.</p>
+<p>Once all the variables are set, it evaluates whether scaling would hit thresholds defined with <code>scaleMin</code> and <code>scaleMax</code>. If it would, it throws an error which, later on in the <code>post</code> section, results in a message to Slack. If neither thresholds would be reached, a simple <code>docker service scale</code> command is executed.</p>
+<p>Since Jenkins pipeline is defined using <a href="https://jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline">Declarative syntax</a>, the first execution needs to be manual so that it is correctly processed and the parameters are created.</p>
+<p>Please open the <code>service-scale</code> activity screen.</p>
+<div class="codehilite"><pre><span></span>open <span class="s2">&quot;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/jenkins/blue/organizations/jenkins/service-scale/activity&quot;</span>
+</pre></div>
+
+<p>Now click the <em>Run</em> button. A few moments later, you'll see that the build failed. Don't panic. That is expected. It's a workaround to bypass a bug and create the proper job definition with all the parameters. It will not fail again for the same reason.</p>
+<h2 id="deploying-instrumented-service">Deploying Instrumented Service<a class="headerlink" href="#deploying-instrumented-service" title="Permanent link">&para;</a></h2>
+<p>The <a href="https://github.com/vfarcic/go-demo">go-demo</a> service is already instrumented. Among others, it request generates <code>resp_time</code> metrics with response time, service name, response code, and path labels.</p>
+<p>We won't go into details of how the service was instrumented but only comment on a few snippets. The code of the whole service is in a single file <a href="https://github.com/vfarcic/go-demo/blob/master/main.go">main.go</a>. Do not be afraid! We're using Go only to demonstrate how instrumentation works. You can implement similar principles in almost any programming language. Hopefully, you should have no problem understanding the logic behind it even if Go is not your programming language of choice.</p>
+<p>As an example, every request starting with the <code>/demo/hello</code> path is sent to the <code>HelloServer</code> function. The relevant part of the function is as follows.</p>
+<div class="codehilite"><pre><span></span><span class="kd">func</span> <span class="nx">HelloServer</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">req</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">start</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Now</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span> <span class="nx">recordMetrics</span><span class="p">(</span><span class="nx">start</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">http</span><span class="p">.</span><span class="nx">StatusOK</span><span class="p">)</span> <span class="p">}()</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>We record the time (<code>start</code>) and defer the invocation of the <code>recordMetric</code> function. In Go, <code>defer</code> means that the function will be executed at the end of the context it is defined in. Like that, we guarantee that the <code>recordMetrics</code> will be invoked after the request is processed and the response is sent back to the client.</p>
+<p>The <code>recordMetric</code> function records (observes) the duration of the response by calculating the difference between the current and the start time. That observation is done with a few labels that will, later on, allow us to query metrics from Prometheus and define alerts.</p>
+<div class="codehilite"><pre><span></span><span class="kd">func</span> <span class="nx">recordMetrics</span><span class="p">(</span><span class="nx">start</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Time</span><span class="p">,</span> <span class="nx">req</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">,</span> <span class="nx">code</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">duration</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Since</span><span class="p">(</span><span class="nx">start</span><span class="p">)</span>
+    <span class="nx">histogram</span><span class="p">.</span><span class="nx">With</span><span class="p">(</span>
+        <span class="nx">prometheus</span><span class="p">.</span><span class="nx">Labels</span><span class="p">{</span>
+            <span class="s">&quot;service&quot;</span><span class="p">:</span> <span class="nx">serviceName</span><span class="p">,</span>
+            <span class="s">&quot;code&quot;</span><span class="p">:</span> <span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">&quot;%d&quot;</span><span class="p">,</span> <span class="nx">code</span><span class="p">),</span>
+            <span class="s">&quot;method&quot;</span><span class="p">:</span> <span class="nx">req</span><span class="p">.</span><span class="nx">Method</span><span class="p">,</span>
+            <span class="s">&quot;path&quot;</span><span class="p">:</span> <span class="nx">req</span><span class="p">.</span><span class="nx">URL</span><span class="p">.</span><span class="nx">Path</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">).</span><span class="nx">Observe</span><span class="p">(</span><span class="nx">duration</span><span class="p">.</span><span class="nx">Seconds</span><span class="p">())</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>For more information, please consult <a href="https://prometheus.io/docs/practices/instrumentation/">instrumentation</a> or <a href="https://prometheus.io/docs/instrumenting/clientlibs/">client libraries</a> pages of Prometheus documentation.</p>
+<p>Now we can deploy the last stack. It will be the service we're hoping to scale based on response time metrics.</p>
+<div class="codehilite"><pre><span></span>docker stack deploy <span class="se">\</span>
+    -c stacks/go-demo-instrument-alert-short.yml <span class="se">\</span>
+    go-demo
+</pre></div>
+
+<p>Please visit <a href="https://github.com/vfarcic/docker-flow-monitor/blob/master/stacks/go-demo-instrument-alert-short.yml">go-demo-instrument-alert-short.yml</a> for the full stack definition. We'll comment only on service labels since the rest should be pretty straightforward.</p>
+<div class="codehilite"><pre><span></span>  main:
+    ...
+    deploy:
+      ...
+      labels:
+        - com.df.notify=true
+        - com.df.distribute=true
+        - com.df.servicePath=/demo
+        - com.df.port=8080
+        - com.df.scaleMin=2
+        - com.df.scaleMax=4
+        - com.df.scrapePort=8080
+        - com.df.alertName.1=mem_limit
+        - com.df.alertIf.1=@service_mem_limit:0.8
+        - com.df.alertFor.1=5m
+        - com.df.alertName.2=resp_time_above
+        - com.df.alertIf.2=@resp_time_above:0.1,5m,0.99
+        - com.df.alertName.3=resp_time_below
+        - com.df.alertIf.3=@resp_time_below:0.025,5m,0.75
+      ...
+</pre></div>
+
+<p>The <code>servicePath</code> and <code>port</code> label will be used by <em>Docker Flow Proxy</em> to configure itself and start forwarding requests coming to <code>/demo</code> to the <code>go-demo</code> service.</p>
+<p>You already saw the usage of <code>scaleMin</code> and <code>scaleMax</code> labels. Jenkins uses them to decide whether the service should be scale or the number of replicas already reached the limits.</p>
+<p>The <code>alertName</code>, <code>alertIf</code>, and <code>alertFor</code> labels are the key to scaling. The define Prometheus alerts. The first one (<code>memlimit</code>) is already described in the <a href="http://monitor.dockerflow.com/tutorial/">Running Docker Flow Monitor tutorial</a> so will skip it. The second (<code>resp_time_above</code>) defines alert that will be fired if the rate of response times of the <code>0.1</code> seconds bucket (100 milliseconds or faster) is above 99% (<code>0.99</code>) for over five minutes (<code>5m</code>). Similarly, the <code>resp_time_below</code> alert will fire if the rate of response times of the <code>0.025</code> seconds bucket (25 milliseconds or faster) is below 75% (<code>0.75</code>) for over five minutes (<code>5m</code>). In all the cases, we're using <a href="http://monitor.dockerflow.com/usage/#alertif-parameter-shortcuts">AlertIf Parameter Shortcuts</a> that will be expanded into full Prometheus expressions.</p>
+<p>Let's take a look at Prometheus alert screen.</p>
+<div class="codehilite"><pre><span></span>open <span class="s2">&quot;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/monitor/alerts&quot;</span>
+</pre></div>
+
+<p>You should see three alerts that correspond to the three labels define in the <code>main</code> service of the <code>go-demo</code> stack. <em>Docker Flow Swarm Listener</em> detected the new service and sent those labels to <em>Docker Flow Monitor</em> which, in turn, converted them info Prometheus configuration.</p>
+<p>If you expand the <em>godemo_main_resp_time_above</em> alert, you'll see that DFM translated the service labels into the alert definition that follows.</p>
+<div class="codehilite"><pre><span></span>alert: godemo_main_resptimeabove
+expr: sum(rate(http_server_resp_time_bucket{job=&quot;go-demo_main&quot;,le=&quot;0.1&quot;}[5m]))
+  / sum(rate(http_server_resp_time_count{job=&quot;go-demo_main&quot;}[5m])) &lt; 0.99
+labels:
+  receiver: system
+  scale: up
+  service: go-demo_main
+  type: service
+annotations:
+  summary: Response time of the service go-demo_main is above 0.1
+</pre></div>
+
+<p>Similarly, the <em>godemo_main_resp_time_below</em> alert is defined as follows.</p>
+<div class="codehilite"><pre><span></span>alert: godemo_main_resptimebelow
+expr: sum(rate(http_server_resp_time_bucket{job=&quot;go-demo_main&quot;,le=&quot;0.025&quot;}[5m]))
+  / sum(rate(http_server_resp_time_count{job=&quot;go-demo_main&quot;}[5m])) &gt; 0.75
+labels:
+  receiver: system
+  scale: down
+  service: go-demo_main
+  type: service
+annotations:
+  summary: Response time of the service go-demo_main is below 0.025
+</pre></div>
+
+<p>Let's confirm that the <code>go-demo</code> stack is up-and-running.</p>
+<div class="codehilite"><pre><span></span>docker stack ps -f desired-state<span class="o">=</span>running go-demo
+</pre></div>
+
+<p>You should see three replicas of the <code>go-demo_main</code> and one replica of the <code>go-demo_db</code> service. If that's not the case, please wait a while longer and repeat the <code>docker stack ps</code> command.</p>
+<p>We should confirm that all the targets of the service are indeed registered.</p>
+<div class="codehilite"><pre><span></span>open <span class="s2">&quot;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/monitor/targets&quot;</span>
+</pre></div>
+
+<p>You should see two or three targets depending on whether Prometheus already sent the alert to de-scale the service (more on that soon).</p>
+<h2 id="automatically-scaling-services">Automatically Scaling Services<a class="headerlink" href="#automatically-scaling-services" title="Permanent link">&para;</a></h2>
+<p>Let's go back to the Prometheus' alert screen.</p>
+<div class="codehilite"><pre><span></span>open <span class="s2">&quot;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/monitor/alerts&quot;</span>
+</pre></div>
+
+<p>By this time, the <em>godemo_main_resp_time_below</em> alert should be red. The <code>go-demo</code> service periodically pings itself and the response is faster than the twenty-five milliseconds limit we set (unless your laptop is very old and slow). As a result, Prometheus fired the alert to Alertmanager. It, in turn, evaluated the <code>service</code> and <code>scale</code> labels and decided that it should send a POST request to Jenkins with parameters <code>service=go-demo_main&amp;scale=-1</code>.</p>
+<p>We can confirm that the process worked by opening the Jenkins <code>service-scale</code> activity screen.</p>
+<div class="codehilite"><pre><span></span>open <span class="s2">&quot;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/jenkins/blue/organizations/jenkins/service-scale/activity&quot;</span>
+</pre></div>
+
+<p>You should see that the new build was executed and, hopefully, it's green. If more than ten minutes passed, you might see a third build as well. If that's the case, we'll ignore it for now.</p>
+<p>Please click the second (green) build followed with a click to the last step with the name <em>Print Message</em>. The output should say that <em>go-demo_main was scaled from 3 to 2 replicas</em>.</p>
+<p>Let's double check that's what truly happened.</p>
+<div class="codehilite"><pre><span></span>docker stack ps -f desired-state<span class="o">=</span>running go-demo
+</pre></div>
+
+<p>The output should be similar to the one that follows (IDs are removed for brevity).</p>
+<div class="codehilite"><pre><span></span>NAME           IMAGE                  NODE    DESIRED STATE CURRENT STATE         ERROR PORTS
+go-demo_main.1 vfarcic/go-demo:latest swarm-2 Running       Running 2 minutes ago
+go-demo_db.1   mongo:latest           swarm-2 Running       Running 3 minutes ago
+go-demo_main.2 vfarcic/go-demo:latest swarm-3 Running       Running 2 minutes ago
+</pre></div>
+
+<p>As you can see, Prometheus used metrics to deduce that we have more replicas in the system than we really need since they respond very fast. As a result, if fired an alert to Alertmanager which executed a Jenkins build and our service was scaled down from three to two replicas.</p>
+<p>If you take a closer look at the Alertmanager configuration, you'll notice that both the <code>repeat_interval</code> and the <code>group_interval</code> are set to five minutes. If Prometheus continues firing the alert, Alertmanager will repeat the same process ten minutes later.</p>
+<p>Please observe the Jenkins <code>service-scale</code> screen. Ten minutes later a new build will start. However, since we are already running the minimum number of replicas, Jenkins will send a notification to Slack instead trying to continue de-scaling the service.</p>
+<p>Please visit the <em>#df-monitor-tests</em> channel inside <a href="https://devops20.slack.com/">devops20.slack.com</a> and you should see a Slack notification stating that <em>go-demo_main could not be scaled</em>. If this is your first visit to <em>devops20</em> on Slack, you'll have to register through <a href="http://slack.devops20toolkit.com">slack.devops20toolkit.com</a>.</p>
+<p>Let's see what happens when response times of the service become too high. We'll send requests that will result in high response time and observe the behavior of the system.</p>
+<div class="codehilite"><pre><span></span><span class="k">for</span> i in <span class="o">{</span><span class="m">1</span>..30<span class="o">}</span><span class="p">;</span> <span class="k">do</span>
+    <span class="nv">DELAY</span><span class="o">=</span>$<span class="o">[</span> <span class="nv">$RANDOM</span> % <span class="m">6000</span> <span class="o">]</span>
+    curl <span class="s2">&quot;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/demo/hello?delay=</span><span class="nv">$DELAY</span><span class="s2">&quot;</span>
+<span class="k">done</span>
+</pre></div>
+
+<p>If the service receives the <code>delay</code> parameter, it goes to sleep for the specified number of milliseconds. The above commands sent thirty requests with a random delay between 0 and 6000 milliseconds.</p>
+<p>Now we can take a look at the alerts.</p>
+<div class="codehilite"><pre><span></span>open <span class="s2">&quot;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/monitor/alerts&quot;</span>
+</pre></div>
+
+<p>The <em>godemo_main_resp_time_above</em> turned red indicating that the threshold is reached and Prometheus fired an alert to Alertmanager. If everything went as planned, Alertmanager should have sent a request to Jenkins. Let's confirm that indeed happened.</p>
+<div class="codehilite"><pre><span></span>open <span class="s2">&quot;http://</span><span class="k">$(</span>docker-machine ip swarm-1<span class="k">)</span><span class="s2">/jenkins/blue/organizations/jenkins/service-scale/activity&quot;</span>
+</pre></div>
+
+<p>You should see a new build. Please click it. The last step with the <em>Print Message</em> header should state that <em>go-demo_main was scaled from 2 to 3 replicas</em>.</p>
+<p>We can confirm that the number of replicas indeed scaled to three by taking a look at the stack processes.</p>
+<div class="codehilite"><pre><span></span>docker stack ps -f desired-state<span class="o">=</span>running go-demo
+</pre></div>
+
+<p>The output should be similar to the one that follows (IDs are removed for brevity).</p>
+<div class="codehilite"><pre><span></span>NAME           IMAGE                  NODE    DESIRED STATE CURRENT STATE             ERROR PORTS
+go-demo_main.1 vfarcic/go-demo:latest swarm-2 Running       Running about an hour ago
+go-demo_db.1   mongo:latest           swarm-2 Running       Running about an hour ago
+go-demo_main.2 vfarcic/go-demo:latest swarm-3 Running       Running about an hour ago
+go-demo_main.3 vfarcic/go-demo:latest swarm-1 Running       Running 42 seconds ago
+</pre></div>
+
+<h2 id="what-now">What Now?<a class="headerlink" href="#what-now" title="Permanent link">&para;</a></h2>
+<p>You saw a simple example of a system that automatically scales and de-scales services. You should be able to expand on those examples and start building your own self-sufficient system that features not only self-healing provided with Docker Swarm but also self-adaptation based on scraped metrics.</p>
+<p>Please remove the demo cluster we created and free your resources.</p>
+<div class="codehilite"><pre><span></span>docker-machine rm -f swarm-1 swarm-2 swarm-3
+</pre></div>
+
+<h2 id="the-devops-22-toolkit-self-healing-docker-clusters">The DevOps 2.2 Toolkit: Self-Healing Docker Clusters<a class="headerlink" href="#the-devops-22-toolkit-self-healing-docker-clusters" title="Permanent link">&para;</a></h2>
+<p>The tutorial you just read uses some of the concepts and exercises described in <a href="https://leanpub.com/the-devops-2-2-toolkit">The DevOps 2.2 Toolkit: Self-Healing Docker Clusters</a>.</p>
+<p><a href="https://leanpub.com/the-devops-2-2-toolkit"><img src="https://technologyconversations.files.wordpress.com/2017/06/cover-small1.jpg?w=249" alt="" width="249" height="300" class="alignright size-medium wp-image-3563" /></a>If you liked this article, you might be interested in <strong><a href="https://leanpub.com/the-devops-2-2-toolkit">The DevOps 2.2 Toolkit: Self-Healing Docker Clusters</a></strong> book. The book goes beyond Docker and schedulers and tries to explore ways for building self-adaptive and self-healing Docker clusters. If you are a Docker user and want to explore advanced techniques for creating clusters and managing services, this book might be just what you're looking for.</p>
+<p>The book is still under development. If you choose to become an early reader and influence the direction of the book, please get a copy from <a href="https://leanpub.com/the-devops-2-2-toolkit">LeanPub</a>. You will receive notifications whenever a new chapter is added.</p>
+<p>Give the book a try and let me know what you think.</p>
+                
+                  
+                
+              
+              
+                
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../tutorial/" title="Running Docker Flow Monitor" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Running Docker Flow Monitor
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../tutorial-flexible-labeling/" title="Flexible Labeling with Docker Flow Monitor" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Flexible Labeling with Docker Flow Monitor
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright © 2017 Viktor Farcic
+          </div>
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/application-84693e5e49.js"></script>
+      
+      <script>app.initialize({version:"0.17.1",url:{base:".."}})</script>
+      
+    
+    
+      
+    
+  </body>
+</html>
